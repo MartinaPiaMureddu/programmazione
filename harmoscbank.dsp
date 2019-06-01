@@ -1,19 +1,27 @@
 import("stdfaust.lib");
 
-envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
-vmeter(x) = attach(x, envelop(x) : vbargraph("[03][unit:dB]", -70, +5));
 
-oscgroup(x) = vgroup("[02] f1", x);
+vmeter(x) = attach(x, envelop(x) : vbargraph("[03][unit:dB]", -70, +5))
+with{
+ envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
+};
 
-frq = vslider("[01] FREQ [style:knob] [unit:Hz]", 440,100,20000,1); 
+oscill(o) = os.oscsin(frq*avo) : hgroup("[02] OSC %avo", *(vol) <: *(sqrt(1-pan)), *(sqrt(pan)) : vmeter, vmeter)
+  with{
+    avo = o+(001); 
+    oscgroup(x) = vgroup("[02] f1", x);
+    frq = vslider("[01] FREQ [style:knob] [unit:Hz]", 440,100,20000,1); 
+    pan = oscgroup(vslider("[01] PAN [style:knob]", 0.5,0,1,0.01)); 
+    vol = oscgroup(vslider("[02] VOL", 0.0,0.0,1.0,0.01));
+};
 
-pan = oscgroup(vslider("[01] PAN [style:knob]", 0.5,0,1,0.01)); 
+stereo = hgroup("[127]STEREO OUT", *(vol), *(vol) : vmeter, vmeter)
+  with{
+    vol = vslider("[01] VOL", 0,-70,+6,0.1) : ba.db2linear : si.smoo;
+};
 
-vol = oscgroup(vslider("[02] VOL ", 0.0,0.0,1.0,0.01));
+ 
+process = hgroup("OSCILLATORS BANK", par(i, 4, oscill(i)) :> stereo);
 
-oscill(o) = os.oscsin(frq*o) : hgroup("[02] OSC %o", *(vol) <: *(sqrt(1-pan)), *(sqrt(pan)) : vmeter, vmeter);
-
-process = hgroup("OSCILLATORS BANK", par(i, 4, oscill(i))) :> _,_;
-// STEREO OUT DECENTE
 // NUMERAZIONE CHE PARTE DA 1
 // MOLTIPLICAZIONE CHE PARTE DA 1
