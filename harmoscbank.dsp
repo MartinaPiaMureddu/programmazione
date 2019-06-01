@@ -22,6 +22,3 @@ stereo = hgroup("[127]STEREO OUT", *(vol), *(vol) : vmeter, vmeter)
 
  
 process = hgroup("OSCILLATORS BANK", par(i, 4, oscill(i)) :> stereo);
-
-// NUMERAZIONE CHE PARTE DA 1
-// MOLTIPLICAZIONE CHE PARTE DA 1
